@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException  
 from modelos.clientes import Cliente, ClienteCrear, ClienteEditar
-from listas import lista_clientes  
+from listas import lista_clientes 
+from conexion_bd import Session_dependencia
 
 rutas_clientes = APIRouter()  
 #lista_clientes: list[Cliente] = []
@@ -12,7 +13,7 @@ async def listar_clientes():
 
 
 @rutas_clientes.get("/clientes/{cliente_id}", response_model=Cliente)
-async def listar_cliente(cliente_id: int):
+async def listar_cliente(cliente_id: int, mi_sesion: Session_dependencia):
     for i, obj_cliente in enumerate(lista_clientes):
         if obj_cliente.id == cliente_id:
             return obj_cliente
@@ -22,11 +23,11 @@ async def listar_cliente(cliente_id: int):
 
 
 @rutas_clientes.post("/clientes", response_model=Cliente)
-async def crear_cliente(datos_cliente: ClienteCrear):
+async def crear_cliente(datos_cliente: ClienteCrear, mi_sesion: Session_dependencia):
     Cliente_val = Cliente.model_validate(datos_cliente.model_dump())
-    id_cliente = len(lista_clientes) + 1
-    Cliente_val.id = id_cliente
-    lista_clientes.append(Cliente_val)
+    mi_sesion.add(Cliente_val)
+    mi_sesion.commit()
+    mi_sesion.refresh(Cliente_val)
     return Cliente_val
 
 
