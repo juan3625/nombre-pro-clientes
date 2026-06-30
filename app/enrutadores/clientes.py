@@ -2,14 +2,16 @@ from fastapi import APIRouter, HTTPException
 from modelos.clientes import Cliente, ClienteCrear, ClienteEditar
 from listas import lista_clientes 
 from conexion_bd import Session_dependencia
+from sqlmodel import select
 
 rutas_clientes = APIRouter()  
 #lista_clientes: list[Cliente] = []
 
 
 @rutas_clientes.get("/clientes", response_model=list[Cliente])
-async def listar_clientes():
-    return lista_clientes
+async def listar_clientes(sesion: Session_dependencia):
+    lista_cli = sesion.exec(select(Cliente)).all()
+    return lista_cli
 
 
 @rutas_clientes.get("/clientes/{cliente_id}", response_model=Cliente)
